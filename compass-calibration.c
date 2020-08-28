@@ -377,7 +377,7 @@ static int compass_collect (sensors_event_t* event, sensor_info_t* info)
     }
 
     if (cal_data->sample_count < MAGN_DS_SIZE) {
-        memcpy(cal_data->sample[cal_data->sample_count], data, sizeof(float) * 3);
+        memcpy_s(cal_data->sample[cal_data->sample_count], sizeof(cal_data->sample), data, sizeof(float) * 3);
         cal_data->sample_count++;
         cal_data->average[0] += data[0];
         cal_data->average[1] += data[1];

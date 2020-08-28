@@ -25,6 +25,7 @@
 #define MAX_CHANNELS	4	/* We can handle as many channels per sensor */
 #define MAX_EVENTS	2	/* We can handle as many events per channel */
 #define MAX_TRIGGERS	8	/* Check for triggers 0 to MAX_TRIGGERS-1 */
+#define MAX_AVERAGE_WINDOW_SIZE 25
 
 #define DEV_FILE_PATH		"/dev/iio:device%d"
 #define BASE_PATH		"/sys/bus/iio/devices/iio:device%d/"

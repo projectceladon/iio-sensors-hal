@@ -305,6 +305,7 @@ void setup_noise_filtering (int s)
 			window_size = atoi(cursor);
 	}
 
+	if (window_size > MAX_AVERAGE_WINDOW_SIZE) window_size = MAX_AVERAGE_WINDOW_SIZE;
 	switch (sensor[s].filter_type) {
 
 		case FILTER_TYPE_MEDIAN:
@@ -410,5 +411,5 @@ void record_sample (int s, const sensors_event_t* event)
 
 	cell->motion_trigger = (sensor[s].selected_trigger == sensor[s].motion_trigger_name);
 
-	memcpy(&cell->data, event, sizeof(sensors_event_t));
+	memcpy_s(&cell->data, sizeof(sensors_event_t), event, sizeof(sensors_event_t));
 }
