@@ -808,9 +808,11 @@ static int add_sensor (int dev_num, int catalog_index, int mode)
 		 * This can be considered a kernel-mode iio driver bug.
 		 */
 		ALOGW("Using null trigger on sensor %d (dev %d)\n", s, dev_num);
-		strncpy_s(sensor[s].internal_name, sizeof(sensor[s].internal_name),
-				"(null)", 6);
-                sensor[s].internal_name[6] = '\0';
+		if (sizeof(sensor[s].internal_name) >= 6) {
+			strncpy_s(sensor[s].internal_name, sizeof(sensor[s].internal_name),
+					"(null)", 6);
+			sensor[s].internal_name[6] = '\0';
+		}
 	}
 
 	switch (sensor_type) {
@@ -922,6 +924,10 @@ static void propose_new_trigger (int s, char trigger_name[MAX_NAME_SIZE],
 	/* If we found any-motion trigger, record it */
 
 	if (!memcmp(suffix, "any-motion-", 11)) {
+		if (strnlen_s(trigger_name, MAX_NAME_SIZE) >
+				(sizeof(sensor[s].motion_trigger_name) - 1))
+			return;
+
 		strncpy_s(sensor[s].motion_trigger_name, sizeof(sensor[s].motion_trigger_name) - 1,
 				trigger_name, MAX_NAME_SIZE);
 		return;
@@ -929,10 +935,19 @@ static void propose_new_trigger (int s, char trigger_name[MAX_NAME_SIZE],
 
 	/* If we found a hrtimer trigger, record it */
 	if (!memcmp(suffix, "hr-dev", 6)) {
+		if (strnlen_s(trigger_name, MAX_NAME_SIZE) >
+				(sizeof(sensor[s].hrtimer_trigger_name) - 1))
+			return;
+
 		strncpy_s(sensor[s].hrtimer_trigger_name, sizeof(sensor[s].hrtimer_trigger_name) - 1,
 				trigger_name, MAX_NAME_SIZE);
 		return;
 	}
+
+	if (strnlen_s(trigger_name, MAX_NAME_SIZE) >
+			(sizeof(sensor[s].init_trigger_name) - 1))
+		return;
+
 	/*
 	 * It's neither the default "dev" nor an "any-motion" one. Make sure we use this though, as we may not have any other indication of the name
 	 * of the trigger to use with this sensor.
@@ -1014,8 +1029,12 @@ static int create_hrtimer_trigger(int s, int trigger)
 		if (errno != EEXIST)
 			return -1;
 
+	if (strnlen_s(hrtimer_name, sizeof(hrtimer_name)) > (sizeof(sensor[s].hrtimer_trigger_name) - 1))
+		return -1;
+
 	strncpy_s(sensor[s].hrtimer_trigger_name, sizeof(sensor[s].hrtimer_trigger_name) - 1,
 			hrtimer_name, sizeof(hrtimer_name));
+
 	sensor[s].trigger_nr = trigger;
 
 	max_supported_rate = sensor_get_max_static_freq(s);
@@ -1083,10 +1102,16 @@ static void setup_trigger_names (void)
 	 * trigger. The code generating intermediate events is dependent on motion_trigger_name being set to a non empty string.
 	 */
 
-	for (s=0; s<sensor_count; s++)
-		if ((sensor[s].quirks & QUIRK_TERSE_DRIVER) && sensor[s].motion_trigger_name[0] == '\0')
+	for (s=0; s<sensor_count; s++) {
+		if ((sensor[s].quirks & QUIRK_TERSE_DRIVER) && sensor[s].motion_trigger_name[0] == '\0') {
+			if (strnlen_s(sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name)) >
+					(sizeof(sensor[s].motion_trigger_name) - 1))
+				break;
+
 			strncpy_s(sensor[s].motion_trigger_name, sizeof(sensor[s].motion_trigger_name) - 1,
 					sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name));
+		}
+	}
 
 	for (s=0; s<sensor_count; s++)
 		if (sensor[s].mode == MODE_TRIGGER) {

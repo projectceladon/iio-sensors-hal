@@ -117,7 +117,9 @@ int sensor_get_st_prop (int s, const char* sel, char val[MAX_NAME_SIZE])
 	snprintf(prop_name, PROP_NAME_MAX, PROP_BASE, prefix, extended_sel);
 
 	if (property_get(prop_name, prop_val, "")) {
-		strncpy_s(val, MAX_NAME_SIZE-1, prop_val, PROP_VALUE_MAX);
+		if (strnlen_s(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
+
+		strncpy_s(val, MAX_NAME_SIZE - 1, prop_val, sizeof(prop_val));
 		val[MAX_NAME_SIZE-1] = '\0';
 		return 0;
 	}
@@ -127,7 +129,9 @@ int sensor_get_st_prop (int s, const char* sel, char val[MAX_NAME_SIZE])
 		snprintf(prop_name, PROP_NAME_MAX, PROP_BASE, shorthand, extended_sel);
 
 		if (property_get(prop_name, prop_val, "")) {
-			strncpy_s(val, MAX_NAME_SIZE-1, prop_val, PROP_VALUE_MAX);
+			if (strnlen_s(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
+
+			strncpy_s(val, MAX_NAME_SIZE - 1, prop_val, sizeof(prop_val));
 			val[MAX_NAME_SIZE-1] = '\0';
 			return 0;
 		}
@@ -137,7 +141,9 @@ int sensor_get_st_prop (int s, const char* sel, char val[MAX_NAME_SIZE])
 	snprintf(prop_name, PROP_NAME_MAX, PROP_BASE, prefix, sel);
 
 	if (property_get(prop_name, prop_val, "")) {
-		strncpy_s(val, MAX_NAME_SIZE-1, prop_val, PROP_VALUE_MAX);
+		if (strnlen_s(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
+
+		strncpy_s(val, MAX_NAME_SIZE - 1, prop_val, sizeof(prop_val));
 		val[MAX_NAME_SIZE-1] = '\0';
 		return 0;
 	}
@@ -148,7 +154,7 @@ int sensor_get_st_prop (int s, const char* sel, char val[MAX_NAME_SIZE])
 
 int sensor_get_prop (int s, const char* sel, int* val)
 {
-	char buf[MAX_NAME_SIZE];
+	char buf[MAX_NAME_SIZE] = { 0 };
 
 	if (sensor_get_st_prop(s, sel, buf))
 		return -1;
@@ -160,7 +166,7 @@ int sensor_get_prop (int s, const char* sel, int* val)
 
 int sensor_get_fl_prop (int s, const char* sel, float* val)
 {
-	char buf[MAX_NAME_SIZE];
+	char buf[MAX_NAME_SIZE] = { 0 };
 
 	if (sensor_get_st_prop(s, sel, buf))
 		return -1;
@@ -172,13 +178,19 @@ int sensor_get_fl_prop (int s, const char* sel, float* val)
 
 char* sensor_get_name (int s)
 {
-	char buf[MAX_NAME_SIZE];
+	char buf[MAX_NAME_SIZE] = { 0 };
 
 	if (sensor[s].is_virtual) {
+		size_t friendly_name_len = strnlen_s(sensor[sensor[s].base[0]].friendly_name,
+					sizeof(sensor[sensor[s].base[0]].friendly_name));
 		switch (sensor[s].type) {
 			case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
 			case SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED:
-				strncpy(buf, sensor[sensor[s].base[0]].friendly_name, sizeof(buf) - 1);
+				if (friendly_name_len > (sizeof(buf) - 1)) {
+					return "";
+				}
+				strncpy_s(buf, sizeof(buf) - 1, sensor[sensor[s].base[0]].friendly_name,
+						friendly_name_len);
 				snprintf(sensor[s].friendly_name,
 					 MAX_NAME_SIZE,
 					 "%s %s", "Uncalibrated", buf);
@@ -198,7 +210,7 @@ char* sensor_get_name (int s)
 		snprintf(sensor[s].friendly_name, MAX_NAME_SIZE, "S%d-%s",
 			 s, sensor[s].internal_name);
 	} else {
-		sprintf(sensor[s].friendly_name, "S%d", s);
+		snprintf(sensor[s].friendly_name, sizeof(sensor[s].friendly_name), "S%d", s);
 	}
 
 	return sensor[s].friendly_name;
@@ -491,7 +503,7 @@ int sensor_get_available_frequencies (int s)
 	sensor[s].avail_freqs_count = 0;
 	sensor[s].avail_freqs = 0;
 
-	sprintf(avail_sysfs_path, DEVICE_AVAIL_FREQ_PATH, dev_num);
+	snprintf(avail_sysfs_path, sizeof(avail_sysfs_path), DEVICE_AVAIL_FREQ_PATH, dev_num);
 
 	err = sysfs_read_str(avail_sysfs_path, freqs_buf, sizeof(freqs_buf));
 	if (err < 0)
@@ -526,7 +538,7 @@ int sensor_get_mounting_matrix (int s, float mm[9])
 			return 0;
 	}
 
-	sprintf(mm_path, MOUNTING_MATRIX_PATH, dev_num);
+	snprintf(mm_path, sizeof(mm_path), MOUNTING_MATRIX_PATH, dev_num);
 
 	err = sysfs_read_str(mm_path, mm_buf, sizeof(mm_buf));
 	if (err < 0)
