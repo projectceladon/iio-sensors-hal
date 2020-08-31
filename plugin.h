@@ -20,39 +20,38 @@
 #include <hardware/sensors.h>
 
 typedef struct {
+    void* handle;
 
-	void *handle;
-
-	/**
-	 * Initialize the vendor plugin.
-	 *
-	 * @param[in]	dev	The sensor device
-	 * @return		0 on success, negative errno code otherwise.
-	 */
-	int (*open) (int dev);
-	/**
-	 * Release the resources allocated by vendor plugin
-	 * internally.
-	 *
-	 * @param[in]	dev	The sensor device
-	 * @return		0 on success, negative errno code otherwise.
-	 */
-	int (*close) (int dev);
-	/**
-	 * Preprocess the sensor data before passing it to HAL.
-	 *
-	 * @param[in,out] data	The sensor data to be preprocessed
-	 * @return		0 on success, negative errno code otherwise.
-	 */
-	int (*preprocess) (sensors_event_t* data);
-	/**
-	 * Postprocess the sensor data once it has been handled
-	 * by HAL and before passing it to Android framework.
-	 *
-	 * @param[in,out] data	The sensor data to be postprocessed
-	 * @return		0 on success, negative errno code otherwise.
-	 */
-	int (*postprocess) (sensors_event_t* data);
+    /**
+     * Initialize the vendor plugin.
+     *
+     * @param[in]	dev	The sensor device
+     * @return		0 on success, negative errno code otherwise.
+     */
+    int (*open)(int dev);
+    /**
+     * Release the resources allocated by vendor plugin
+     * internally.
+     *
+     * @param[in]	dev	The sensor device
+     * @return		0 on success, negative errno code otherwise.
+     */
+    int (*close)(int dev);
+    /**
+     * Preprocess the sensor data before passing it to HAL.
+     *
+     * @param[in,out] data	The sensor data to be preprocessed
+     * @return		0 on success, negative errno code otherwise.
+     */
+    int (*preprocess)(sensors_event_t* data);
+    /**
+     * Postprocess the sensor data once it has been handled
+     * by HAL and before passing it to Android framework.
+     *
+     * @param[in,out] data	The sensor data to be postprocessed
+     * @return		0 on success, negative errno code otherwise.
+     */
+    int (*postprocess)(sensors_event_t* data);
 } sensor_plugin_t;
 
 /**
