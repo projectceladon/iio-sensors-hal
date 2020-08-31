@@ -44,6 +44,7 @@ LOCAL_CFLAGS :=\
     -fstack-protector-strong \
     -Wno-conversion-null \
     -Wnull-dereference \
+    -Wall \
     -Werror \
     -Warray-bounds \
     -Wformat -Wformat-security \
@@ -52,6 +53,7 @@ LOCAL_CFLAGS :=\
 
 LOCAL_LDFLAGS := -Wl,--gc-sections
 LOCAL_SHARED_LIBRARIES := liblog libcutils libdl libsafestring
+LOCAL_HEADER_LIBRARIES += libutils_headers libhardware_headers
 LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_SHARED_LIBRARY)
 

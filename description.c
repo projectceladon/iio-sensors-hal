@@ -614,7 +614,6 @@ static int get_cdd_freq(int s, int must) {
  * SENSORS_DEVICE_API_VERSION_1_3
  */
 max_delay_t sensor_get_max_delay(int s) {
-    int dev_num = sensor[s].dev_num, i;
     float min_supported_rate;
     float rate_cap;
 
@@ -649,7 +648,7 @@ max_delay_t sensor_get_max_delay(int s) {
             /* For interrupt-based devices, obey the list of supported sampling rates */
             if (sensor[s].avail_freqs_count) {
                 min_supported_rate = 1000;
-                for (i = 0; i < sensor[s].avail_freqs_count; i++) {
+                for (int i = 0; i < sensor[s].avail_freqs_count; i++) {
                     if (sensor[s].avail_freqs[i] < min_supported_rate)
                         min_supported_rate = sensor[s].avail_freqs[i];
                 }

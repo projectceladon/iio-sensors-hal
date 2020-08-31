@@ -497,11 +497,6 @@ static void load_plugin(int s) {
     plugin_name[0] = '\0';
     if (sensor_get_st_prop(s, "plugin", plugin_name) || !plugin_name[0]) return;
 
-    if (strlen(plugin_name) > MAX_NAME_SIZE) {
-        ALOGE("Max name size reach.\n");
-        return;
-    }
-
     for (i = 0, handle = 0; i < paths_count && handle == 0; i++) {
         snprintf(plugin_path, PATH_MAX, "%s%s", paths[i], plugin_name);
         handle = dlopen(plugin_path, RTLD_NOW);
@@ -959,7 +954,7 @@ static void update_sensor_matching_trigger_name(char name[MAX_NAME_SIZE], int* u
     /* See if that matches a sensor */
     for (s = 0; s < sensor_count; s++)
         if (sensor[s].dev_num == dev_num) {
-            sensor_name_len = strlen(sensor[s].internal_name);
+            sensor_name_len = strnlen(sensor[s].internal_name, sizeof(sensor[s].internal_name));
             if ((sensor_name_len < MAX_NAME_SIZE - 1) &&
                 !strncmp(name, sensor[s].internal_name, sensor_name_len))
                 /* Switch to new trigger if appropriate */
