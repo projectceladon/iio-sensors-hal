@@ -17,6 +17,8 @@
 #ifndef FILTERING_H
 #define FILTERING_H
 
+#include <hardware/sensors.h>
+
 void setup_noise_filtering(int s);
 void release_noise_filtering_data(int s);
 void denoise(int s, sensors_event_t* event);

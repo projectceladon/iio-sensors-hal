@@ -545,7 +545,11 @@ static void *acquisition_routine(void *param) {
      * waiting on it. We use these condition variables to get the acquisition threads out of sleep
      * quickly after the sampling rate is adjusted, or the sensor is disabled.
      */
-    pthread_mutex_lock(&thread_release_mutex[s]);
+    ret = pthread_mutex_lock(&thread_release_mutex[s]);
+    if (ret != 0) {
+        ALOGE("pthread_mutex_lock failed with err: %d", ret);
+        return NULL;
+    }
 
     /* Pinpoint the moment we start sampling */
     timestamp = get_timestamp_monotonic();
@@ -613,12 +617,35 @@ static void start_acquisition_thread(int s) {
 
     /* Create condition variable and mutex for quick thread release */
     ret = pthread_condattr_init(&thread_cond_attr[s]);
+    if (ret != 0) {
+        ALOGE("pthread_condattr_init failed with err: %s", strerror(errno));
+        return;
+    }
+
     ret = pthread_condattr_setclock(&thread_cond_attr[s], CLOCK_MONOTONIC);
+    if (ret != 0) {
+        ALOGE("pthread_condattr_setclock failed with err: %s", strerror(errno));
+        goto condattr_fail;
+    }
+
     ret = pthread_cond_init(&thread_release_cond[s], &thread_cond_attr[s]);
+    if (ret != 0) {
+        ALOGE("pthread_cond_init failed with err: %s", strerror(errno));
+        goto condattr_fail;
+    }
+
     ret = pthread_mutex_init(&thread_release_mutex[s], NULL);
+    if (ret != 0) {
+        ALOGE("pthread_mutex_init failed with err: %s", strerror(errno));
+        goto init_fail;
+    }
 
     /* Create a pipe for inter thread communication */
     ret = pipe(sensor[s].thread_data_fd);
+    if (ret != 0) {
+        ALOGE("pipe failed with err: %s", strerror(errno));
+        goto pipe_fail;
+    }
 
     incoming_data_fd = sensor[s].thread_data_fd[0];
 
@@ -629,11 +656,29 @@ static void start_acquisition_thread(int s) {
     ret = epoll_ctl(poll_fd, EPOLL_CTL_ADD, incoming_data_fd, &ev);
     if (ret == -1) {
         ALOGE("Failed adding %d to poll set (%s)\n", incoming_data_fd, strerror(errno));
+        goto epoll_fail;
     }
 
     /* Create and start worker thread */
     ret =
         pthread_create(&sensor[s].acquisition_thread, NULL, acquisition_routine, (void *)(size_t)s);
+    if (ret != 0) {
+        ALOGE("pthread_create failed with err: %s", strerror(errno));
+        goto create_fail;
+    }
+    return;
+
+create_fail:
+    epoll_ctl(poll_fd, EPOLL_CTL_DEL, incoming_data_fd, NULL);
+epoll_fail:
+    close(sensor[s].thread_data_fd[0]);
+    sensor[s].thread_data_fd[0] = -1;
+pipe_fail:
+    pthread_mutex_destroy(&thread_release_mutex[s]);
+init_fail:
+    pthread_cond_destroy(&thread_release_cond[s]);
+condattr_fail:
+    pthread_condattr_destroy(&thread_cond_attr[s]);
 }
 
 static void stop_acquisition_thread(int s) {
