@@ -30,8 +30,6 @@
 #include "utils.h"
 
 #include <errno.h>
-#include <safe_mem_lib.h>
-#include <safe_str_lib.h>
 
 /*
  * This table maps syfs entries in scan_elements directories to sensor types,
@@ -782,7 +780,7 @@ static int add_sensor(int dev_num, int catalog_index, int mode) {
          */
         ALOGW("Using null trigger on sensor %d (dev %d)\n", s, dev_num);
         if (sizeof(sensor[s].internal_name) >= 6) {
-            strncpy_s(sensor[s].internal_name, sizeof(sensor[s].internal_name), "(null)", 6);
+            strncpy(sensor[s].internal_name, "(null)", 6);
             sensor[s].internal_name[6] = '\0';
         }
     }
@@ -889,32 +887,29 @@ static void propose_new_trigger(int s, char trigger_name[MAX_NAME_SIZE], int sen
     /* If we found any-motion trigger, record it */
 
     if (!memcmp(suffix, "any-motion-", 11)) {
-        if (strnlen_s(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].motion_trigger_name) - 1))
+        if (strnlen(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].motion_trigger_name) - 1))
             return;
 
-        strncpy_s(sensor[s].motion_trigger_name, sizeof(sensor[s].motion_trigger_name) - 1,
-                  trigger_name, MAX_NAME_SIZE);
+        strncpy(sensor[s].motion_trigger_name, trigger_name, MAX_NAME_SIZE);
         return;
     }
 
     /* If we found a hrtimer trigger, record it */
     if (!memcmp(suffix, "hr-dev", 6)) {
-        if (strnlen_s(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].hrtimer_trigger_name) - 1))
+        if (strnlen(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].hrtimer_trigger_name) - 1))
             return;
 
-        strncpy_s(sensor[s].hrtimer_trigger_name, sizeof(sensor[s].hrtimer_trigger_name) - 1,
-                  trigger_name, MAX_NAME_SIZE);
+        strncpy(sensor[s].hrtimer_trigger_name, trigger_name, MAX_NAME_SIZE);
         return;
     }
 
-    if (strnlen_s(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].init_trigger_name) - 1)) return;
+    if (strnlen(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].init_trigger_name) - 1)) return;
 
     /*
      * It's neither the default "dev" nor an "any-motion" one. Make sure we use this though, as we
      * may not have any other indication of the name of the trigger to use with this sensor.
      */
-    strncpy_s(sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name) - 1, trigger_name,
-              MAX_NAME_SIZE);
+    strncpy(sensor[s].init_trigger_name, trigger_name, MAX_NAME_SIZE);
 }
 
 static void update_sensor_matching_trigger_name(char name[MAX_NAME_SIZE], int* updated,
@@ -986,12 +981,11 @@ static int create_hrtimer_trigger(int s, int trigger) {
     if (mkdir(hrtimer_path, dir_status.st_mode))
         if (errno != EEXIST) return -1;
 
-    if (strnlen_s(hrtimer_name, sizeof(hrtimer_name)) >
+    if (strnlen(hrtimer_name, sizeof(hrtimer_name)) >
         (sizeof(sensor[s].hrtimer_trigger_name) - 1))
         return -1;
 
-    strncpy_s(sensor[s].hrtimer_trigger_name, sizeof(sensor[s].hrtimer_trigger_name) - 1,
-              hrtimer_name, sizeof(hrtimer_name));
+    strncpy(sensor[s].hrtimer_trigger_name, hrtimer_name, sizeof(hrtimer_name));
 
     sensor[s].trigger_nr = trigger;
 
@@ -1061,12 +1055,11 @@ static void setup_trigger_names(void) {
 
     for (s = 0; s < sensor_count; s++) {
         if ((sensor[s].quirks & QUIRK_TERSE_DRIVER) && sensor[s].motion_trigger_name[0] == '\0') {
-            if (strnlen_s(sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name)) >
+            if (strnlen(sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name)) >
                 (sizeof(sensor[s].motion_trigger_name) - 1))
                 break;
 
-            strncpy_s(sensor[s].motion_trigger_name, sizeof(sensor[s].motion_trigger_name) - 1,
-                      sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name));
+            strncpy(sensor[s].motion_trigger_name, sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name));
         }
     }
 
@@ -1116,16 +1109,16 @@ static void swap_sensors(int s1, int s2) {
     sensor_info_t temp_sensor;
 
     /* S1 -> temp */
-    memcpy_s(&temp_sensor, sizeof(sensor_info_t), &sensor[s1], sizeof(sensor_info_t));
-    memcpy_s(&temp_sensor_desc, sizeof(struct sensor_t), &sensor_desc[s1], sizeof(struct sensor_t));
+    memcpy(&temp_sensor, &sensor[s1], sizeof(sensor_info_t));
+    memcpy(&temp_sensor_desc, &sensor_desc[s1], sizeof(struct sensor_t));
 
     /* S2 -> S1 */
-    memcpy_s(&sensor[s1], sizeof(sensor_info_t), &sensor[s2], sizeof(sensor_info_t));
-    memcpy_s(&sensor_desc[s1], sizeof(struct sensor_t), &sensor_desc[s2], sizeof(struct sensor_t));
+    memcpy(&sensor[s1], &sensor[s2], sizeof(sensor_info_t));
+    memcpy(&sensor_desc[s1], &sensor_desc[s2], sizeof(struct sensor_t));
 
     /* temp -> S2 */
-    memcpy_s(&sensor[s2], sizeof(sensor_info_t), &temp_sensor, sizeof(sensor_info_t));
-    memcpy_s(&sensor_desc[s2], sizeof(struct sensor_t), &temp_sensor_desc, sizeof(struct sensor_t));
+    memcpy(&sensor[s2], &temp_sensor, sizeof(sensor_info_t));
+    memcpy(&sensor_desc[s2], &temp_sensor_desc, sizeof(struct sensor_t));
 
     /* Fix-up sensor id mapping, which is stale */
     sensor_desc[s1].handle = s1;

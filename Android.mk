@@ -52,7 +52,7 @@ LOCAL_CFLAGS :=\
     -DLOG_TAG=\"Sensors\"
 
 LOCAL_LDFLAGS := -Wl,--gc-sections
-LOCAL_SHARED_LIBRARIES := liblog libcutils libdl libsafestring
+LOCAL_SHARED_LIBRARIES := liblog libcutils libdl
 LOCAL_HEADER_LIBRARIES += libutils_headers libhardware_headers
 LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_SHARED_LIBRARY)

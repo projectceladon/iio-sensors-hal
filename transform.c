@@ -27,7 +27,6 @@
 #include "filtering.h"
 #include "utils.h"
 
-#include <safe_mem_lib.h>
 
 #define GYRO_MIN_SAMPLES 5 /* Drop first few gyro samples after enable */
 
@@ -233,7 +232,7 @@ static void process_event_gyro_uncal(int s, int i, sensors_event_t* data) {
     if (sensor[s].type == SENSOR_TYPE_GYROSCOPE) {
         gyro_data = (gyro_cal_t*)sensor[s].cal_data;
 
-        memcpy_s(&sensor[i].sample, sizeof(sensors_event_t), data, sizeof(sensors_event_t));
+        memcpy(&sensor[i].sample, data, sizeof(sensors_event_t));
 
         sensor[i].sample.type = SENSOR_TYPE_GYROSCOPE_UNCALIBRATED;
         sensor[i].sample.sensor = s;
@@ -256,7 +255,7 @@ static void process_event_magn_uncal(int s, int i, sensors_event_t* data) {
     if (sensor[s].type == SENSOR_TYPE_MAGNETIC_FIELD) {
         magn_data = (compass_cal_t*)sensor[s].cal_data;
 
-        memcpy_s(&sensor[i].sample, sizeof(sensors_event_t), data, sizeof(sensors_event_t));
+        memcpy(&sensor[i].sample, data, sizeof(sensors_event_t));
 
         sensor[i].sample.type = SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED;
         sensor[i].sample.sensor = s;

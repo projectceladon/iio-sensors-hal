@@ -25,7 +25,6 @@
 #include "transform.h"
 #include "utils.h"
 
-#include <safe_str_lib.h>
 
 #define IIO_SENSOR_HAL_VERSION 1
 
@@ -118,9 +117,9 @@ int sensor_get_st_prop(int s, const char* sel, char val[MAX_NAME_SIZE]) {
     snprintf(prop_name, PROP_NAME_MAX, PROP_BASE, prefix, extended_sel);
 
     if (property_get(prop_name, prop_val, "")) {
-        if (strnlen_s(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
+        if (strnlen(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
 
-        strncpy_s(val, MAX_NAME_SIZE - 1, prop_val, sizeof(prop_val));
+        strncpy(val, prop_val, sizeof(prop_val));
         val[MAX_NAME_SIZE - 1] = '\0';
         return 0;
     }
@@ -130,9 +129,9 @@ int sensor_get_st_prop(int s, const char* sel, char val[MAX_NAME_SIZE]) {
         snprintf(prop_name, PROP_NAME_MAX, PROP_BASE, shorthand, extended_sel);
 
         if (property_get(prop_name, prop_val, "")) {
-            if (strnlen_s(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
+            if (strnlen(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
 
-            strncpy_s(val, MAX_NAME_SIZE - 1, prop_val, sizeof(prop_val));
+            strncpy(val, prop_val, sizeof(prop_val));
             val[MAX_NAME_SIZE - 1] = '\0';
             return 0;
         }
@@ -142,9 +141,9 @@ int sensor_get_st_prop(int s, const char* sel, char val[MAX_NAME_SIZE]) {
     snprintf(prop_name, PROP_NAME_MAX, PROP_BASE, prefix, sel);
 
     if (property_get(prop_name, prop_val, "")) {
-        if (strnlen_s(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
+        if (strnlen(prop_val, sizeof(prop_val)) > (MAX_NAME_SIZE - 1)) return -1;
 
-        strncpy_s(val, MAX_NAME_SIZE - 1, prop_val, sizeof(prop_val));
+        strncpy(val, prop_val, sizeof(prop_val));
         val[MAX_NAME_SIZE - 1] = '\0';
         return 0;
     }
@@ -174,7 +173,7 @@ char* sensor_get_name(int s) {
     char buf[MAX_NAME_SIZE] = {0};
 
     if (sensor[s].is_virtual) {
-        size_t friendly_name_len = strnlen_s(sensor[sensor[s].base[0]].friendly_name,
+        size_t friendly_name_len = strnlen(sensor[sensor[s].base[0]].friendly_name,
                                              sizeof(sensor[sensor[s].base[0]].friendly_name));
         switch (sensor[s].type) {
             case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
@@ -182,7 +181,7 @@ char* sensor_get_name(int s) {
                 if (friendly_name_len > (sizeof(buf) - 1)) {
                     return "";
                 }
-                strncpy_s(buf, sizeof(buf) - 1, sensor[sensor[s].base[0]].friendly_name,
+                strncpy(buf, sensor[sensor[s].base[0]].friendly_name,
                           friendly_name_len);
                 snprintf(sensor[s].friendly_name, MAX_NAME_SIZE, "%s %s", "Uncalibrated", buf);
                 return sensor[s].friendly_name;
