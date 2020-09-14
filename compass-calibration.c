@@ -22,7 +22,6 @@
 #include "description.h"
 #include "matrix-ops.h"
 
-#include <safe_mem_lib.h>
 
 /* Compass defines */
 #define COMPASS_CALIBRATION_PATH "/data/vendor/sensors/compass.conf"
@@ -362,8 +361,7 @@ static int compass_collect(sensors_event_t* event, sensor_info_t* info) {
     }
 
     if (cal_data->sample_count < MAGN_DS_SIZE) {
-        memcpy_s(cal_data->sample[cal_data->sample_count], sizeof(cal_data->sample), data,
-                 sizeof(float) * 3);
+        memcpy(cal_data->sample[cal_data->sample_count], data,sizeof(float) * 3);
         cal_data->sample_count++;
         cal_data->average[0] += data[0];
         cal_data->average[1] += data[1];
@@ -455,10 +453,8 @@ static int compass_ready(sensor_info_t* info) {
             double err = calc_square_err(cal_data);
             if (new_err < err) {
                 /* New cal data is better, so we switch to the new */
-                memcpy_s(cal_data->offset, sizeof(cal_data->offset), new_cal_data.offset,
-                         sizeof(cal_data->offset));
-                memcpy_s(cal_data->w_invert, sizeof(cal_data->w_invert), new_cal_data.w_invert,
-                         sizeof(cal_data->w_invert));
+                memcpy(cal_data->offset, new_cal_data.offset, sizeof(cal_data->offset));
+                memcpy(cal_data->w_invert, new_cal_data.w_invert, sizeof(cal_data->w_invert));
                 cal_data->bfield = new_cal_data.bfield;
                 if (info->cal_level < (cal_steps - 1)) info->cal_level++;
                 ALOGV(

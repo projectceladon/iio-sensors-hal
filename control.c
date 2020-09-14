@@ -28,6 +28,7 @@
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <string.h>
 #include <time.h>
 #include <utils/Log.h>
 #include "calibration.h"
@@ -37,7 +38,6 @@
 #include "transform.h"
 #include "utils.h"
 
-#include <safe_mem_lib.h>
 
 /* Currently active sensors count, per device */
 static int poll_sensors_per_dev[MAX_DEVICES]; /* poll-mode sensors */
@@ -268,7 +268,7 @@ void build_sensor_report_maps(int dev_num) {
 
             ch_spec = sensor[s].channel[c].type_spec;
 
-            memcpy_s(ch_spec, sizeof(sensor[s].channel[c].type_spec), spec_buf, sizeof(spec_buf));
+            memcpy(ch_spec, spec_buf, sizeof(spec_buf));
 
             ch_info = &sensor[s].channel[c].type_info;
 
@@ -1274,7 +1274,7 @@ static int integrate_device_report_from_dev(int dev_num, int fd) {
 
                 size = sensor[s].channel[c].size;
 
-                memcpy_s(target, sizeof(sensor[s].report_buffer) - sr_offset, source, size);
+                memcpy(target, source, size);
 
                 sr_offset += size;
             }
@@ -1381,7 +1381,7 @@ static int integrate_device_report(int dev_num) {
 static int propagate_vsensor_report(int s, sensors_event_t *data) {
     /* There's a new report stored in sensor.sample for this sensor; transmit it */
 
-    memcpy_s(data, sizeof(sensors_event_t), &sensor[s].sample, sizeof(sensors_event_t));
+    memcpy(data, &sensor[s].sample, sizeof(sensors_event_t));
 
     data->sensor = s;
     data->type = sensor_desc[s].type; /* sensor_desc[s].type can differ from sensor[s].type ;
@@ -1408,7 +1408,7 @@ static int propagate_sensor_report(int s, sensors_event_t *data) {
         if (!sensor[s].directly_enabled) return 0;
         /* Use the data provided by the acquisition thread */
         ALOGV("Reporting data from worker thread for S%d\n", s);
-        memcpy_s(data, sizeof(sensors_event_t), &sensor[s].sample, sizeof(sensors_event_t));
+        memcpy(data, &sensor[s].sample, sizeof(sensors_event_t));
         data->timestamp = sensor[s].report_ts;
         return 1;
     }

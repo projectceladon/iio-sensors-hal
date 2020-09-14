@@ -22,7 +22,6 @@
 #include "common.h"
 #include "description.h"
 
-#include <safe_mem_lib.h>
 
 typedef struct {
     float* buff;
@@ -79,7 +78,7 @@ static float median(float* queue, unsigned int size) {
     unsigned int median_index = (right / 2);
     float temp[size];
 
-    memcpy_s(temp, sizeof(temp), queue, size * sizeof(float));
+    memcpy(temp, queue, size * sizeof(float));
 
     /* If the list has only one element return it */
     if (left == right) return temp[left];
@@ -364,5 +363,5 @@ void record_sample(int s, const sensors_event_t* event) {
 
     cell->motion_trigger = (sensor[s].selected_trigger == sensor[s].motion_trigger_name);
 
-    memcpy_s(&cell->data, sizeof(sensors_event_t), event, sizeof(sensors_event_t));
+    memcpy(&cell->data, event, sizeof(sensors_event_t));
 }
