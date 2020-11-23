@@ -890,7 +890,8 @@ static void propose_new_trigger(int s, char trigger_name[MAX_NAME_SIZE], int sen
         if (strnlen(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].motion_trigger_name) - 1))
             return;
 
-        strncpy(sensor[s].motion_trigger_name, trigger_name, MAX_NAME_SIZE);
+        strncpy(sensor[s].motion_trigger_name, trigger_name, MAX_NAME_SIZE - 1);
+        sensor[s].motion_trigger_name[MAX_NAME_SIZE - 1] = '\0';
         return;
     }
 
@@ -899,7 +900,8 @@ static void propose_new_trigger(int s, char trigger_name[MAX_NAME_SIZE], int sen
         if (strnlen(trigger_name, MAX_NAME_SIZE) > (sizeof(sensor[s].hrtimer_trigger_name) - 1))
             return;
 
-        strncpy(sensor[s].hrtimer_trigger_name, trigger_name, MAX_NAME_SIZE);
+        strncpy(sensor[s].hrtimer_trigger_name, trigger_name, MAX_NAME_SIZE - 1);
+        sensor[s].hrtimer_trigger_name[MAX_NAME_SIZE - 1] = '\0';
         return;
     }
 
@@ -909,7 +911,8 @@ static void propose_new_trigger(int s, char trigger_name[MAX_NAME_SIZE], int sen
      * It's neither the default "dev" nor an "any-motion" one. Make sure we use this though, as we
      * may not have any other indication of the name of the trigger to use with this sensor.
      */
-    strncpy(sensor[s].init_trigger_name, trigger_name, MAX_NAME_SIZE);
+    strncpy(sensor[s].init_trigger_name, trigger_name, MAX_NAME_SIZE - 1);
+    sensor[s].init_trigger_name[MAX_NAME_SIZE - 1] = '\0';
 }
 
 static void update_sensor_matching_trigger_name(char name[MAX_NAME_SIZE], int* updated,
@@ -986,6 +989,7 @@ static int create_hrtimer_trigger(int s, int trigger) {
         return -1;
 
     strncpy(sensor[s].hrtimer_trigger_name, hrtimer_name, sizeof(hrtimer_name));
+    sensor[s].hrtimer_trigger_name[MAX_NAME_SIZE - 1] = '\0';
 
     sensor[s].trigger_nr = trigger;
 
@@ -1059,7 +1063,8 @@ static void setup_trigger_names(void) {
                 (sizeof(sensor[s].motion_trigger_name) - 1))
                 break;
 
-            strncpy(sensor[s].motion_trigger_name, sensor[s].init_trigger_name, sizeof(sensor[s].init_trigger_name));
+            strncpy(sensor[s].motion_trigger_name, sensor[s].init_trigger_name, MAX_NAME_SIZE - 1);
+            sensor[s].motion_trigger_name[MAX_NAME_SIZE - 1] = '\0';
         }
     }
 
